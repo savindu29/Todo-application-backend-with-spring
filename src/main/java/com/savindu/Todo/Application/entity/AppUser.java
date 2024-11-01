@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Entity
@@ -30,6 +31,9 @@ public class AppUser{
     private String password;
     @Column
     private Date createdAt;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Todo> todos;
 
 
 

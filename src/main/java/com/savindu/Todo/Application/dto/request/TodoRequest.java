@@ -8,11 +8,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class AuthenticationRequest{
+public class TodoRequest {
     @NotEmpty
-    private String email;
+    private String title;
     @NotEmpty
-    private String password;
+    private String description;
+
 
 
 }

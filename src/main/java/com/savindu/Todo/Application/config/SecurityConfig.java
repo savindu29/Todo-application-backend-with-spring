@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -24,6 +25,7 @@ import javax.crypto.spec.SecretKeySpec;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
     @Value("${security.jwt.secret-key}")
     private String jwtSecretKey;
 
@@ -31,7 +33,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login", "/api/v1/auth/register").permitAll()
+                        .requestMatchers("/auth/login", "/api/v1/auth/register", "/api/v1/auth/login").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/home/**").authenticated()
                         .anyRequest().authenticated())
@@ -42,12 +44,11 @@ public class SecurityConfig {
 
     @Bean
     public JwtDecoder jwtDecoder() {
-        SecretKeySpec secretKeySpec = new SecretKeySpec(jwtSecretKey.getBytes(), "");
-        return NimbusJwtDecoder.withSecretKey(secretKeySpec).macAlgorithm(MacAlgorithm.HS256).build();
+        return NimbusJwtDecoder.withSecretKey(new SecretKeySpec(jwtSecretKey.getBytes(), "HmacSHA256")).build();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(UserService userService) {
+    public AuthenticationManager authenticationManager(@Lazy UserService userService) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userService);
         provider.setPasswordEncoder(new BCryptPasswordEncoder());
