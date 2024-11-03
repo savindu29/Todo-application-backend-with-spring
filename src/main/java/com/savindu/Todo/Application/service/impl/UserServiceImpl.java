@@ -4,6 +4,7 @@ import com.savindu.Todo.Application.Exception.UserAlreadyExistsException;
 import com.savindu.Todo.Application.Exception.UserNotFoundException;
 import com.savindu.Todo.Application.dto.request.AuthenticationRequest;
 import com.savindu.Todo.Application.dto.request.RegisterRequest;
+import com.savindu.Todo.Application.dto.response.AppResponse;
 import com.savindu.Todo.Application.dto.response.AuthenticationResponse;
 import com.savindu.Todo.Application.entity.AppUser;
 import com.savindu.Todo.Application.repository.UserRepository;
@@ -48,7 +49,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public HashMap<String, Object> registerUser(RegisterRequest registerRequest) {
+    public AppResponse<Object> registerUser(RegisterRequest registerRequest) {
         if (userRepository.findByEmail(registerRequest.getEmail()).isPresent()) {
             logger.error("User already exists with email: " + registerRequest.getEmail());
             throw new UserAlreadyExistsException("User already exists with email: " + registerRequest.getEmail());
@@ -70,11 +71,11 @@ public class UserServiceImpl implements UserService {
         response.put("token", token);
         response.put("message", "User registered successfully");
         response.put("user", new AuthenticationResponse(savedUser.getId(), savedUser.getFirstname(), savedUser.getLastname(), savedUser.getEmail()));
-        return response;
+        return AppResponse.builder().data(response).build();
     }
 
     @Override
-    public HashMap<String, Object> login(AuthenticationRequest request) {
+    public AppResponse<Object> login(AuthenticationRequest request) {
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
@@ -92,7 +93,7 @@ public class UserServiceImpl implements UserService {
         response.put("message", "Login successful");
         response.put("user", new AuthenticationResponse(appUser.getId(), appUser.getFirstname(), appUser.getLastname(), appUser.getEmail()));
         logger.info("User logged in successfully with ID: " + appUser.getId());
-        return response;
+        return AppResponse.builder().data(response).build();
 
 
     }

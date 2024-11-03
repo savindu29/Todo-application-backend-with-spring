@@ -34,7 +34,7 @@ public class AuthController {
             return ResponseEntity.badRequest().body(AppResponse.<Object>builder().error(errorResponse).build());
         }
 
-        HashMap<String, Object> response = userService.registerUser(registerRequest);
+        AppResponse<Object> response = userService.registerUser(registerRequest);
         return ResponseEntity.ok(AppResponse.builder().data(response).build());
     }
 
@@ -50,7 +50,7 @@ public class AuthController {
             return ResponseEntity.badRequest().body(AppResponse.<Object>builder().error(errorResponse).build());
         }
 
-        HashMap<String, Object> response = userService.login(request);
+        AppResponse<Object> response = userService.login(request);
         return ResponseEntity.ok(AppResponse.builder().data(response).build());
     }
 
