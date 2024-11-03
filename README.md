@@ -26,8 +26,3 @@ Access the Swagger Open API documentation at:
 http://localhost:8080/swagger-ui/index.html#/
 ```
 
-### Instructions to Customize
-- Replace `<your-repo-url>` with the actual URL of your Git repository.
-- Update the `username` and `password` in the database credentials section.
-
-This version is concise and straight to the point, making it easy for users to follow.
