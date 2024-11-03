@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class AuthenticationRequest{
+public class AuthenticationRequest {
     @NotEmpty
     private String email;
     @NotEmpty

@@ -1,6 +1,5 @@
 package com.savindu.Todo.Application.service.impl;
 
-import com.savindu.Todo.Application.Exception.AuthenticationFailedException;
 import com.savindu.Todo.Application.Exception.UserAlreadyExistsException;
 import com.savindu.Todo.Application.Exception.UserNotFoundException;
 import com.savindu.Todo.Application.dto.request.AuthenticationRequest;
@@ -8,14 +7,12 @@ import com.savindu.Todo.Application.dto.request.RegisterRequest;
 import com.savindu.Todo.Application.dto.response.AuthenticationResponse;
 import com.savindu.Todo.Application.entity.AppUser;
 import com.savindu.Todo.Application.repository.UserRepository;
-import com.savindu.Todo.Application.util.JwtUtil;
 import com.savindu.Todo.Application.service.UserService;
+import com.savindu.Todo.Application.util.JwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -78,10 +75,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public HashMap<String, Object> login(AuthenticationRequest request) {
-        try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-            );
+
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+        );
 
 
         AppUser appUser = userRepository.findByEmail(request.getEmail())
@@ -97,17 +94,6 @@ public class UserServiceImpl implements UserService {
         logger.info("User logged in successfully with ID: " + appUser.getId());
         return response;
 
-        }
-        catch (InternalAuthenticationServiceException e){
-            logger.error("User not found with email: " + request.getEmail());
-            throw new UserNotFoundException("User not found with email: " + request.getEmail());
-        }
-        catch (BadCredentialsException e) {
-            logger.error("Invalid credentials. Please check your email and password.", e);
-            throw new AuthenticationFailedException("Invalid credentials. Please check your email and password.");
-        }catch (Exception e) {
-            logger.error("An unexpected error occurred while logging in", e);
-            throw new RuntimeException("An unexpected error occurred while logging in", e);
-        }
+
     }
 }

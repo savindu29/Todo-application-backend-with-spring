@@ -5,12 +5,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 @Data
@@ -18,7 +14,7 @@ import java.util.List;
 @Table(name = "user")
 @AllArgsConstructor
 @NoArgsConstructor
-public class AppUser{
+public class AppUser {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -37,7 +33,6 @@ public class AppUser{
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<Todo> todos;
-
 
 
 }

@@ -7,7 +7,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AppResponse<T>{
+public class AppResponse<T> {
     private T data;
     private ErrorResponseDto error;
     private PagingResponseDto paging;

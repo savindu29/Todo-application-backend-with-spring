@@ -1,12 +1,10 @@
 package com.savindu.Todo.Application.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
@@ -28,28 +26,35 @@ public class Todo {
     private String description;
 
     @Column(nullable = false)
-    private boolean completed;
-
-    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    @Column
+    private LocalDateTime dueDate;
+
+    @Column(nullable = false)
+    private boolean completed;
+
+    @Column(nullable = false)
+    private Priority priority;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     @JsonBackReference
     private AppUser user;
 
-
-    @Override
-    public String toString() {
-        return "Todo{" +
-                "id=" + id + // Ensure you include a field that doesn't cause circular reference
-                ", title='" + title + '\'' +
-                ", description='" + description + '\'' +
-                // Omit appUser or handle it carefully
-                '}';
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
 
 }
