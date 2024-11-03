@@ -5,6 +5,7 @@ import com.savindu.Todo.Application.Exception.UnauthorizedAccessException;
 import com.savindu.Todo.Application.dto.request.TodoRequest;
 import com.savindu.Todo.Application.dto.response.AppResponse;
 import com.savindu.Todo.Application.dto.response.ErrorResponseDto;
+import com.savindu.Todo.Application.entity.Priority;
 import com.savindu.Todo.Application.service.TodoService;
 import com.savindu.Todo.Application.util.JwtUtil;
 import jakarta.validation.Valid;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Date;
 import java.util.HashMap;
 
 @RestController
@@ -52,6 +54,20 @@ public class TodoController {
         }
 
         HashMap<String, Object> response = todoService.updateTodo(todoRequest, id);
+        return ResponseEntity.ok(AppResponse.builder().data(response).build());
+    }
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<AppResponse<Object>> deleteTodo(@PathVariable Long id) {
+        String response = todoService.deleteTodoById(id);
+        return ResponseEntity.ok(AppResponse.builder().data(response).build());
+    }
+    @GetMapping("/search/{title}/{priority}/{completed}/{dueDate}")
+    public ResponseEntity<AppResponse<Object>> searchTodo(
+            @PathVariable String title,
+            @PathVariable Priority priority,
+            @PathVariable boolean completed,
+            @PathVariable Date dueDate) {
+        HashMap<String, Object> response = todoService.searchTodos(title, priority, completed, dueDate);
         return ResponseEntity.ok(AppResponse.builder().data(response).build());
     }
 

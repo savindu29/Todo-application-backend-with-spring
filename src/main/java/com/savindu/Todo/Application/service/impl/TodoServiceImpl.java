@@ -4,6 +4,7 @@ import com.savindu.Todo.Application.Exception.ResourceNotFoundException;
 import com.savindu.Todo.Application.Exception.UnauthorizedAccessException;
 import com.savindu.Todo.Application.dto.request.TodoRequest;
 import com.savindu.Todo.Application.entity.AppUser;
+import com.savindu.Todo.Application.entity.Priority;
 import com.savindu.Todo.Application.entity.Todo;
 import com.savindu.Todo.Application.repository.TodoRepository;
 import com.savindu.Todo.Application.repository.UserRepository;
@@ -17,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.sql.Date;
 import java.util.HashMap;
 
 @Service
@@ -99,6 +101,31 @@ public class TodoServiceImpl implements TodoService {
 
 
         return response;
+    }
+
+    @Override
+    public String deleteTodoById(Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = jwtUtil.getUserIdFromAuthentication(authentication);
+        AppUser appUser = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        Todo todo = todoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Todo not found with id: " + id));
+
+        if (!todo.getUser().getId().equals(appUser.getId())) {
+            throw new UnauthorizedAccessException("You do not have permission to delete this Todo item");
+        }
+
+        todoRepository.deleteById(id);
+        logger.info(("Todo deleted successfully with ID: " + id));
+
+        return "Todo deleted successfully";
+    }
+
+    @Override
+    public HashMap<String, Object> searchTodos(String title, Priority priority, boolean completed, Date dueDate) {
+        return null;
     }
 
 }
