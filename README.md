@@ -32,7 +32,7 @@ INSERT INTO priority (id, name, code) VALUES
 (4, 'Low', '4');
 ```
 
-## 3. API Documentation
+## 4. API Documentation
 
 Access the Swagger Open API documentation at: 
 ```
