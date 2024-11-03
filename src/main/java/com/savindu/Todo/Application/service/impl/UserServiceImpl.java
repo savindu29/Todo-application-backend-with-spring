@@ -1,112 +1,113 @@
 package com.savindu.Todo.Application.service.impl;
 
+import com.savindu.Todo.Application.Exception.AuthenticationFailedException;
+import com.savindu.Todo.Application.Exception.UserAlreadyExistsException;
+import com.savindu.Todo.Application.Exception.UserNotFoundException;
 import com.savindu.Todo.Application.dto.request.AuthenticationRequest;
 import com.savindu.Todo.Application.dto.request.RegisterRequest;
+import com.savindu.Todo.Application.dto.response.AuthenticationResponse;
 import com.savindu.Todo.Application.entity.AppUser;
 import com.savindu.Todo.Application.repository.UserRepository;
-import com.savindu.Todo.Application.service.JwtService;
+import com.savindu.Todo.Application.util.JwtUtil;
 import com.savindu.Todo.Application.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-    private final JwtService jwtService;
+    private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+    Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, JwtService jwtService, AuthenticationManager authenticationManager) {
+    public UserServiceImpl(UserRepository userRepository, JwtUtil jwtUtil, AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
-        this.jwtService = jwtService;
+        this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
     }
 
     @Override
     public UserDetails loadUserByUsername(String email) {
-        AppUser user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        AppUser user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
 
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail())
                 .password(user.getPassword())
-
                 .build();
     }
 
     @Override
     public HashMap<String, Object> registerUser(RegisterRequest registerRequest) {
-        HashMap<String, Object> response = new HashMap<>();
-
-        try {
-            if (userRepository.findByEmail(registerRequest.getEmail()).isPresent()) {
-                response.put("status", "error");
-                response.put("message", "User already exists with email: " + registerRequest.getEmail());
-                return response;
-            }
-
-            AppUser user = new AppUser();
-            user.setEmail(registerRequest.getEmail());
-            user.setPassword(bCryptPasswordEncoder.encode(registerRequest.getPassword()));
-            user.setFirstname(registerRequest.getFirstname());
-            user.setLastname(registerRequest.getLastname());
-
-            AppUser savedUser = userRepository.save(user);
-            String token = jwtService.createJwtToken(savedUser);
-            response.put("status", "success");
-            response.put("token", token);
-            response.put("message", "User registered successfully");
-        } catch (DataAccessException dae) {
-            response.put("status", "error");
-            response.put("message", "Database error occurred while registering user. Please try again later.");
-            System.err.println("Database Error: " + dae.getMessage());
-        } catch (Exception e) {
-            response.put("status", "error");
-            response.put("message", "An unexpected error occurred. Please contact support.");
-            System.err.println("Unexpected Error: " + e.getMessage());
+        if (userRepository.findByEmail(registerRequest.getEmail()).isPresent()) {
+            logger.error("User already exists with email: " + registerRequest.getEmail());
+            throw new UserAlreadyExistsException("User already exists with email: " + registerRequest.getEmail());
         }
 
+        AppUser user = new AppUser();
+        user.setEmail(registerRequest.getEmail());
+        user.setPassword(bCryptPasswordEncoder.encode(registerRequest.getPassword()));
+        user.setFirstname(registerRequest.getFirstname());
+        user.setLastname(registerRequest.getLastname());
+        user.setCreatedAt(LocalDateTime.now());
+
+        AppUser savedUser = userRepository.save(user);
+        logger.info("User registered successfully with ID: " + savedUser.getId());
+        String token = jwtUtil.createJwtToken(savedUser);
+
+        HashMap<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("token", token);
+        response.put("message", "User registered successfully");
+        response.put("user", new AuthenticationResponse(savedUser.getId(), savedUser.getFirstname(), savedUser.getLastname(), savedUser.getEmail()));
         return response;
     }
 
     @Override
     public HashMap<String, Object> login(AuthenticationRequest request) {
-        HashMap<String, Object> response = new HashMap<>();
-
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
 
-            Optional<AppUser> userOptional = userRepository.findByEmail(request.getEmail());
-            if (userOptional.isPresent()) {
-                AppUser appUser = userOptional.get();
-                String jwtToken = jwtService.createJwtToken(appUser);
-                response.put("status", "success");
-                response.put("token", jwtToken);
-                response.put("message", "Login successful");
-            } else {
-                response.put("status", "error");
-                response.put("message", "User not found with email: " + request.getEmail());
-            }
-        } catch (BadCredentialsException e) {
-            response.put("status", "error");
-            response.put("message", "Invalid credentials. Please check your email and password.");
-        } catch (Exception e) {
-            response.put("status", "error");
-            response.put("message", e.getMessage());
-            System.err.println("Unexpected Error: " + e.getMessage());
-        }
 
+        AppUser appUser = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + request.getEmail()));
+
+        String jwtToken = jwtUtil.createJwtToken(appUser);
+
+        HashMap<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("token", jwtToken);
+        response.put("message", "Login successful");
+        response.put("user", new AuthenticationResponse(appUser.getId(), appUser.getFirstname(), appUser.getLastname(), appUser.getEmail()));
+        logger.info("User logged in successfully with ID: " + appUser.getId());
         return response;
+
+        }
+        catch (InternalAuthenticationServiceException e){
+            logger.error("User not found with email: " + request.getEmail());
+            throw new UserNotFoundException("User not found with email: " + request.getEmail());
+        }
+        catch (BadCredentialsException e) {
+            logger.error("Invalid credentials. Please check your email and password.", e);
+            throw new AuthenticationFailedException("Invalid credentials. Please check your email and password.");
+        }catch (Exception e) {
+            logger.error("An unexpected error occurred while logging in", e);
+            throw new RuntimeException("An unexpected error occurred while logging in", e);
+        }
     }
 }

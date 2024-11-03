@@ -1,5 +1,6 @@
 package com.savindu.Todo.Application.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 @Table(name = "Todo")
 @AllArgsConstructor
 @NoArgsConstructor
+
 public class Todo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,6 +38,18 @@ public class Todo {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference
     private AppUser user;
+
+
+    @Override
+    public String toString() {
+        return "Todo{" +
+                "id=" + id + // Ensure you include a field that doesn't cause circular reference
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                // Omit appUser or handle it carefully
+                '}';
+    }
 
 }

@@ -1,15 +1,17 @@
 package com.savindu.Todo.Application.controller;
 
 import com.savindu.Todo.Application.dto.request.TodoRequest;
-import com.savindu.Todo.Application.service.JwtService;
+import com.savindu.Todo.Application.dto.response.AppResponse;
+import com.savindu.Todo.Application.dto.response.ErrorResponseDto;
+import com.savindu.Todo.Application.util.JwtUtil;
 import com.savindu.Todo.Application.service.TodoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 @RestController
 @RequestMapping("/api/v1/todo")
 public class TodoController {
@@ -18,21 +20,31 @@ public class TodoController {
     private TodoService todoService;
 
     @Autowired
-    private JwtService jwtService;
+    private JwtUtil jwtUtil;
 
     @PostMapping("/create")
-    public String createTodo(@Valid @RequestBody TodoRequest todoRequest) {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-
-        if (authentication.getPrincipal() instanceof Jwt) {
-            Jwt jwt = (Jwt) authentication.getPrincipal();
-            System.out.println("Authorization header: " + jwt.getTokenValue());  // Print the raw JWT token
-            Long userId = jwtService.getUserIdFromToken(jwt.getTokenValue()); // Get userId from the JWT
-
-            return todoService.createTodo(todoRequest, userId);
+    public ResponseEntity<AppResponse<Object>> createTodo(@Valid @RequestBody TodoRequest todoRequest, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            ErrorResponseDto errorResponse = ErrorResponseDto.builder()
+                    .status("error")
+                    .title("Validation Error")
+                    .detail(bindingResult.getAllErrors().toString())
+                    .build();
+            return ResponseEntity.badRequest().body(AppResponse.<Object>builder().error(errorResponse).build());
         }
-        throw new RuntimeException("Authentication object is not of type Jwt");
+
+        HashMap<String, Object> response = todoService.createTodo(todoRequest);
+        return ResponseEntity.ok(AppResponse.builder().data(response).build());
+    }
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<AppResponse<Object>> handleRuntimeException(RuntimeException e) {
+        ErrorResponseDto errorResponse = ErrorResponseDto.builder()
+                .status("error")
+                .title("Unexpected Error")
+                .detail(e.getMessage())
+                .build();
+        return ResponseEntity.internalServerError().body(AppResponse.<Object>builder().error(errorResponse).build());
     }
 }
+
+

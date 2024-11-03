@@ -2,6 +2,8 @@ package com.savindu.Todo.Application.service;
 
 import com.savindu.Todo.Application.dto.request.TodoRequest;
 
+import java.util.HashMap;
+
 public interface TodoService {
-    String createTodo(TodoRequest todoRequest,Long userId);
+    HashMap<String, Object> createTodo(TodoRequest todoRequest);
 }
