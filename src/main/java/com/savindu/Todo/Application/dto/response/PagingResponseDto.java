@@ -18,4 +18,6 @@ public class PagingResponseDto {
 
     @JsonProperty("total_records")
     private long totalRecords;
+    @JsonProperty("total_pages")
+    private int totalPages;
 }

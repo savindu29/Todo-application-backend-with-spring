@@ -9,25 +9,25 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.sql.Date;
 import java.time.LocalDateTime;
 
-@AllArgsConstructor
-@NoArgsConstructor
+
 @Data
 public class TodoRequest {
-    @NotEmpty
+    @NotNull
     @JsonProperty("title")
     private String title;
-    @NotEmpty
+    @NotNull
     @JsonProperty("description")
     private String description;
-    @NotNull(message = "Priority is required")
-    @JsonProperty("priority")
-    private Priority priority;
+    @NotNull(message = "1 for Urgent ,2 for High ,3 for Normal and 4 for Low ")
+    private Integer priority;
+    @NotNull(message = "yyyy-mm-dd")
     @JsonProperty("due_date")
-    private LocalDateTime dueDate;
-    @JsonProperty("completed")
-    private boolean completed = false;
+    private Date dueDate;
+    @NotNull(message = "1 for Complete and 0 for Incomplete")
+    private Integer status;
 
 
 
