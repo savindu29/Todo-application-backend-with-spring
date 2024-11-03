@@ -13,6 +13,8 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,6 +38,8 @@ public class TodoController {
             @RequestBody TodoRequest todoRequest,
             BindingResult bindingResult
     ) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = jwtUtil.getUserIdFromAuthentication(authentication);
         if (bindingResult.hasErrors()) {
             ErrorResponseDto errorResponse = ErrorResponseDto.builder()
                     .status("error")
@@ -45,7 +49,7 @@ public class TodoController {
             return ResponseEntity.badRequest().body(AppResponse.<Object>builder().error(errorResponse).build());
         }
 
-        AppResponse<Object> response = todoService.createTodo(todoRequest);
+        AppResponse<Object> response = todoService.createTodo(todoRequest,userId);
         return ResponseEntity.ok(response);
     }
 
@@ -55,6 +59,8 @@ public class TodoController {
             @PathVariable Long id,
             BindingResult bindingResult
     ) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = jwtUtil.getUserIdFromAuthentication(authentication);
         if (bindingResult.hasErrors()) {
             ErrorResponseDto errorResponse = ErrorResponseDto.builder()
                     .status("error")
@@ -64,12 +70,14 @@ public class TodoController {
             return ResponseEntity.badRequest().body(AppResponse.<Object>builder().error(errorResponse).build());
         }
 
-        AppResponse<Object> response = todoService.updateTodo(todoRequest, id);
+        AppResponse<Object> response = todoService.updateTodo(todoRequest, id,userId);
         return ResponseEntity.ok(AppResponse.builder().data(response).build());
     }
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<AppResponse<Object>> deleteTodo(@PathVariable Long id) {
-        AppResponse<Object> response = todoService.deleteTodoById(id);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = jwtUtil.getUserIdFromAuthentication(authentication);
+        AppResponse<Object> response = todoService.deleteTodoById(id,userId);
         return ResponseEntity.ok(response);
     }
     @GetMapping("/getData")
@@ -85,8 +93,10 @@ public class TodoController {
             @RequestParam(value = "page", required = true)  int page,
             @RequestParam(value = "size", required = true)  int size , HttpServletResponse res
     ) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = jwtUtil.getUserIdFromAuthentication(authentication);
         AppResponse<Object> response = todoService.searchTodos(status,priority,taskId,sortBy,createdFromDate,
-                createdToDate,dueFromDate,dueToDate,page,size);
+                createdToDate,dueFromDate,dueToDate,userId,page,size);
         return ResponseEntity.ok(response);
     }
 

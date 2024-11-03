@@ -40,7 +40,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDetails loadUserByUsername(String email) {
         AppUser user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+                .orElseThrow(() -> {
+                    logger.error("User not found with email: {}", email);
+                    return new UserNotFoundException("User not found with email: " + email);
+                });
+
 
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail())
