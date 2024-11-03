@@ -20,8 +20,9 @@ spring.datasource.password=your_password
 ```
 
 3.**API Documentation**
-```
-Access the Swagger Open API documentation at: http://localhost:8080/swagger-ui/index.html#/
+
+Access the Swagger Open API documentation at: 
+```http://localhost:8080/swagger-ui/index.html#/
 ```
 
 ### Instructions to Customize
