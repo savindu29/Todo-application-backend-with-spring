@@ -6,7 +6,7 @@ This is a simple Todo Application built with Spring Boot.
 
 1. **Clone the project:**
    ```bash
-   git clone https://github.com/AmandhaPanagoda/ticketing-system.git
+   git clone https://github.com/savindu29/Todo-application-backend-with-spring.git
   
 
 2. **Setup Database Credentials:**
